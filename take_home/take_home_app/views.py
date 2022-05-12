@@ -17,10 +17,11 @@ class EventView(APIView):
     def post(self, request):
 
         type = request.data.get('type')
+        amount = request.data.get('amount')
+
         if type == "deposit":
             destination = request.data.get('destination')
-            amount = request.data.get('amount')
-
+            
             for account in accounts:
                 if account.get('account_id') == destination:
                     account['balance'] += amount
@@ -28,6 +29,36 @@ class EventView(APIView):
             
             accounts.append({'account_id': destination, 'balance': amount})
             return Response({'destination': {'id': destination, 'balance': amount}}, status=status.HTTP_201_CREATED)
+
+        elif type == "withdraw":
+            origin = request.data.get('origin')
+            
+            for account in accounts:
+                if account.get('account_id') == origin:
+                    account['balance'] -= amount
+                    return Response({'origin': {'id': origin, 'balance': account.get('balance')}}, status=status.HTTP_201_CREATED)
+
+            return Response(0, status=status.HTTP_404_NOT_FOUND)
+        
+        elif type == "transfer":
+            origin = request.data.get('origin')
+            destination = request.data.get('destination')
+            origin_balance = 0
+            found = False
+
+            for account in accounts:
+                if account.get('account_id') == origin:
+                    account['balance'] -= amount
+                    origin_balance = account.get('balance')
+                    found = True
+
+            if found:
+                for account in accounts:
+                    if account.get('account_id') == destination:
+                        account['balance'] += amount
+                        return Response({'origin': {'id': origin, 'balance': account.get('balance')}, 'destination': {'id': destination, 'balance': origin_balance}})
+            else:
+                return Response(0, status=status.HTTP_404_NOT_FOUND)
 
 class BalanceDetailsView(APIView):
 
