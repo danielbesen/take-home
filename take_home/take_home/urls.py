@@ -19,7 +19,7 @@ from take_home_app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('reset/', views.ResetView.as_view()),
-    path('event/', views.EventView.as_view()),
-    path('balance/', views.BalanceDetailsView.as_view())
+    path('reset', views.ResetView.as_view()),
+    path('event', views.EventView.as_view()),
+    path('balance', views.BalanceDetailsView.as_view())
 ]

@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import HttpResponse
 
 accounts = []
 
@@ -10,8 +11,9 @@ class ResetView(APIView):
 
     def post(self, request):
         accounts.clear()
-        return Response()
-
+        response = HttpResponse("OK", content_type="text/plain")
+        return response
+        
 class EventView(APIView):
 
     def post(self, request):
@@ -51,14 +53,18 @@ class EventView(APIView):
                     account['balance'] -= amount
                     origin_balance = account.get('balance')
                     found = True
-
-            if found:
-                for account in accounts:
-                    if account.get('account_id') == destination:
-                        account['balance'] += amount
-                        return Response({'origin': {'id': origin, 'balance': account.get('balance')}, 'destination': {'id': destination, 'balance': origin_balance}})
-            else:
+                    break
+            
+            if not found:
                 return Response(0, status=status.HTTP_404_NOT_FOUND)
+                
+            for acc in accounts:
+                if acc.get('account_id') == destination:
+                    account['balance'] += amount
+                    return Response({'origin': {'id': origin, 'balance': origin_balance}, 'destination': {'id': destination, 'balance': account.get('balance')}}, status=status.HTTP_201_CREATED)
+            
+            accounts.append({'account_id': destination, 'balance': amount})
+            return Response({'origin': {'id': origin, 'balance': origin_balance}, 'destination': {'id': destination, 'balance': amount}}, status=status.HTTP_201_CREATED)
 
 class BalanceDetailsView(APIView):
 
